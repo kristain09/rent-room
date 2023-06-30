@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/kristain09/rent-room/pkg/config"
+	"github.com/kristain09/rent-room/pkg/models"
 	"github.com/kristain09/rent-room/pkg/render"
 )
 
@@ -28,9 +29,14 @@ func NewHandlers(r *Repository) {
 }
 
 func (m *Repository) Home(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, "home.page.html")
+	render.RenderTemplate(w, "home.page.html", &models.TemplateData{})
 }
 
 func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, "about.page.html")
+	stringMap := make(map[string]string)
+	stringMap["test"] = "Hello Again"
+
+	render.RenderTemplate(w, "about.page.html", &models.TemplateData{
+		StringMap: stringMap,
+	})
 }
