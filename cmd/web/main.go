@@ -7,6 +7,9 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/justinas/nosurf"
 	"github.com/kristain09/rent-room/pkg/config"
 	"github.com/kristain09/rent-room/pkg/handlers"
 	"github.com/kristain09/rent-room/pkg/render"
@@ -48,11 +51,41 @@ func main() {
 
 	srv := &http.Server{
 		Addr:    portNumber,
-		Handler: routes(&app),
+		Handler: Router(&app),
 	}
 
 	err = srv.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func Router(app *config.AppConfig) http.Handler {
+	mux := chi.NewRouter()
+
+	mux.Use(middleware.Recoverer)
+	mux.Use(NoSurf)
+	mux.Use(SessionLoad)
+
+	mux.Get("/", handlers.Repo.Home)
+	mux.Get("/about", handlers.Repo.About)
+
+	return mux
+}
+
+func NoSurf(next http.Handler) http.Handler {
+	csrfHandler := nosurf.New(next)
+
+	csrfHandler.SetBaseCookie(http.Cookie{
+		HttpOnly: true,
+		Path:     "/",
+		Secure:   app.InProduction,
+		SameSite: http.SameSiteLaxMode,
+	})
+	return csrfHandler
+}
+
+// SessionLoad loads and saves session data for current request
+func SessionLoad(next http.Handler) http.Handler {
+	return session.LoadAndSave(next)
 }
