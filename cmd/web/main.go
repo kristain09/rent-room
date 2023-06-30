@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/kristain09/rent-room/cmd/web/routes"
 	"github.com/kristain09/rent-room/pkg/config"
 	"github.com/kristain09/rent-room/pkg/handlers"
 	"github.com/kristain09/rent-room/pkg/render"
@@ -29,12 +30,15 @@ func main() {
 
 	render.NewTemplates(&app)
 
-	http.HandleFunc("/", handlers.Repo.Home)
-	http.HandleFunc("/about", handlers.Repo.About)
-
 	fmt.Println(fmt.Sprintf("Starting application on port %s", PORTNUMBER))
-	err = http.ListenAndServe("localhost:8080", nil)
+
+	srv := &http.Server{
+		Addr:    PORTNUMBER,
+		Handler: routes.Router(&app),
+	}
+
+	err = srv.ListenAndServe()
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 }
